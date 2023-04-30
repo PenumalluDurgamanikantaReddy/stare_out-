@@ -1,14 +1,9 @@
-
-
-
-
-
 .note {
 	background-color: #fef68a;
 	border-radius: 10px;
 	padding: 1rem;
   min-height: 170px;
-  max-width: 20%;
+  max-width: 30%;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button'
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -6,77 +6,106 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import './popup.css'
 import { Plus } from 'react-feather';
 import 'bootstrap/dist/css/bootstrap.min.css'
-function Popup({showModal,setShowModal,refresher}) {
+import { storeActions } from '../store/ReduxStore';
+import { useDispatch } from 'react-redux';
+import { collection,addDoc,serverTimestamp } from 'firebase/firestore'
+import db from '../firebase';
+
+
+function Popup({showModal,}) {
+
+
+
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [background, setBackground] = useState('#F9F5EB')
-  const [foreground, setForeground] = useState('#fff')
-  const [priority, setPriority] = useState('normal')
+  const [background, setBackground] = useState('#FFE898')
+  const dispatch=useDispatch()
 
-  const handleAdd = () =>{
-    const savedData = JSON.parse(localStorage.getItem('myNotes')) || []
-    if(!title || !content){
-        return alert('Title and Content is required')
-    }
-    let newData ={
-        id: Date.now(),
-        title,
-        content,
-        priority,
-        background,
-        foreground,
-        date: new Date().toLocaleDateString()
-    }
-    savedData.push(newData)
-    localStorage.setItem('myNotes', JSON.stringify(savedData))
-    setTitle('')
-    setContent('')
-    setPriority('normal')
-    setShowModal(false)
-    // window.location.reload()
-    refresher()
-  }
+  const date = new Date();
+  const dayOfMonth = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const options = { weekday: 'long' };
+  const dayName = new Intl.DateTimeFormat('en-US', options).format(date);
+  const datedata = `${dayName}, ${dayOfMonth}/${month}/${year}`;
+  console.log(datedata)
+  
+
+const url = window.location.href;
+const email = url.split('/').pop();
+
+const [time, setTime] = useState(new Date().toLocaleTimeString());
+  
+    localStorage.setItem("time",time)
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setTime(new Date().toLocaleTimeString());
+      }, 1000);
+  
+      return () => clearInterval(interval);
+    }, []);
+
+
 
   const handleCancel = () =>{
-    setTitle('')
-    setContent('')
-    setPriority('normal')
-    setShowModal(false)
+    dispatch(storeActions.showadditem())
   }
 
-  const handleColor = (bg, fg)=>{
+  const handleColor = (bg)=>{
     setBackground(bg)
-    setForeground(fg)
+    
   }
+
+  const showAddbuttonhandler=()=>{
+
+        dispatch(storeActions.showadditem())
+      }
+
+const addNoteHandler=()=>{
+  const getchannel=collection(db,"Users",email,"Notes")
+  addDoc(getchannel,{
+     noteTile:title,
+     userNotes:content,
+     usermail:email,
+     theme:background,
+     timestamp:serverTimestamp(),
+    date:datedata,
+    time:time
+  })
+  dispatch(storeActions.showadditem())
+console.log(email)
+}
+
+
+
+const styles={justifyContent:"start",alignItems:"center",display:"flex",gap:"10%"}
+
 
 
   return (
     <>
-      <Modal show={showModal} onHide={()=>setShowModal(false)}>
-        <Modal.Header closeButton>
+      <Modal show={showModal} >
+        <Modal.Header closeButton onClick={showAddbuttonhandler}>
           <Modal.Title>Add New Note</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            <input className='form-control mb-3' placeholder='Enter title' value={title} onChange={(e)=>setTitle(e.target.value)} />
-            <label>Priority</label>
-            <select className='form-control mb-3' value={priority} onChange={(e)=>setPriority(e.target.value)} >
-                <option value='normal'>Normal</option>
-                <option value='high'>High</option>
-            </select>
+            <input className='form-control mb-3' placeholder='Enter title' value={title}  onChange={(e)=>setTitle(e.target.value)} />
+          
             <textarea className='form-control' style={{height:'180px'}} placeholder='Enter notes....' value={content} onChange={(e)=>setContent(e.target.value)} ></textarea>
-        {/* for theme selection */}
+      
         <DropdownButton id="dropdown-basic-button" title="Select Theme">
-      <Dropdown.Item href="#/action-1"><div className='d-flex' onClick={()=>handleColor('#54BAB9','#9ED2C6')}><div className='circle' style={{backgroundColor:'#54BAB9'}}></div> <div className='circle mx-3' style={{backgroundColor:'#9ED2C6'}}></div></div> </Dropdown.Item>
-      <Dropdown.Item href="#/action-2"><div className='d-flex' onClick={()=>handleColor('#FFE898','#FFF8BC')}><div className='circle' style={{backgroundColor:'#FFE898'}}></div> <div className='circle mx-3' style={{backgroundColor:'#FFF8BC'}}></div></div></Dropdown.Item>
-      <Dropdown.Item href="#/action-3"><div className='d-flex' onClick={()=>handleColor('#AfB4FF','#B1E1FF')}><div className='circle' style={{backgroundColor:'#AfB4FF'}}></div> <div className='circle mx-3' style={{backgroundColor:'#B1E1FF'}}></div></div></Dropdown.Item>
-      <Dropdown.Item href="#/action-4"><div className='d-flex' onClick={()=>handleColor('#F9F5EB','#fff')}><div className='circle' style={{backgroundColor:'#F9F5EB'}}></div> <div className='circle mx-3 shadow' style={{backgroundColor:'#fff'}}></div> Default</div></Dropdown.Item>
+      <Dropdown.Item ><div className='d-flex' onClick={()=>handleColor('#54BAB9')} style={styles}><div className='circle' style={{backgroundColor:'#54BAB9',}}></div><strong>theme</strong> </div> </Dropdown.Item>
+      <Dropdown.Item ><div className='d-flex' onClick={()=>handleColor('#FFE898')} style={styles}  ><div className='circle' style={{backgroundColor:'#FFE898'}}></div>theme </div></Dropdown.Item>
+      <Dropdown.Item ><div className='d-flex' onClick={()=>handleColor('#AfB4FF')} style={styles}  ><div className='circle' style={{backgroundColor:'#AfB4FF'}}></div> theme</div></Dropdown.Item>
+      <Dropdown.Item ><div className='d-flex' onClick={()=>handleColor('#F9F5EB')} style={styles}  ><div className='circle' style={{backgroundColor:'#9ED2C6'}}></div> Default</div></Dropdown.Item>
     </DropdownButton>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleAdd}>
+          <Button variant="primary" onClick={addNoteHandler}>
             <Plus/> Add
           </Button>
         </Modal.Footer>
@@ -85,4 +114,4 @@ function Popup({showModal,setShowModal,refresher}) {
   );
 }
 
-export default Popup;
+export default Popup;

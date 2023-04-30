@@ -1,63 +1,64 @@
-import { MdDeleteForever } from 'react-icons/md';
 import DeleteIcon from '@mui/icons-material/Delete';
 import './note.css'
-import {Rating} from 'react-simple-star-rating'
-import { Check, PenTool, Trash } from 'react-feather'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { styled } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
+import { useDispatch } from 'react-redux';
+import { storeActions } from "../store/ReduxStore"
+import { collection,doc,deleteDoc} from 'firebase/firestore'
+import db from '../firebase';
+
+const Note = ({ title,time,bgtheme,email,notes,id,date }) => {
+  const dispatch=useDispatch()
 
 
-const Note = ({ id, text, date, handleDeleteNote }) => {
 
-
-      const Card=styled(("div"))(({theme})=>({
-        backgroundColor:"#fef68a",
-        borderRadius:"10px",
-        padding:"1rem",
-        minheight:"170px",
-maxWidth:"30%",
-display:"flex",
-flexDirection:"column",
-justifyContent:"space-between",
-whiteSpace:"pre-wrap",
-color:"#333333",
-     
+  const Card=styled(("div"))(({theme})=>({
+         backgroundColor:`${bgtheme}`,
+         borderRadius:"10px",
+         display:"flex",
+        flexDirection:"column",
+        justifyContent:"space-between",
+        whiteSpace:"pre-wrap",
+         color:"#333333",
+        width: "80%",
+       minHeight:"4rem",
+        padding:"2rem",
         [theme.breakpoints.down("md")] : {
             maxWidth:"100%",
         },
-    
-        [theme.breakpoints.down("xl")] : {
-            maxWidth:"50%",
-     },
-     [theme.breakpoints.down('sm')] : {
+       [theme.breakpoints.down("xl")] : {
+          width: "10  0%",
+        },
+       [theme.breakpoints.down('sm')] : {
         maxWidth:"100%",
-     },
-     [theme.breakpoints.down("xs")] : {
+        },
+        [theme.breakpoints.down("xs")] : {
         maxWidth:"100%",
      },
       }))
 
 
+   
+   const ShoweditHandler=()=>{
+    dispatch(storeActions.editNoteButton({title:title,theme:bgtheme,notes:notes,id:id}))
+   }
 
+const deleteNoteHandler=()=>{
+  const getchannel = collection(db, "Users", email, "Notes");
+  const docRef = doc(getchannel, id);
+  deleteDoc(docRef);
 
+}
 
 	return (
 		<Card >
-			<span><strong>Eaing</strong></span>
-      <p>Lorem Ipsum is simply dummy text of the
-         printing and typesetting industry. 
-         Lorem Ipsum has been the industry's
-        standard dummy text ever since the 1500s,
-         when an unknown printer took a galley of
-        type and scrambled it to make a type specimen
-        book. It has survived not only five centuries,
-        but also the leap into electronic typesetting,
-          remaining essentially unchanged.   </p>
+			<span><strong>{title}</strong></span>
+      <p>{notes}  </p>
 			<div className='note-footer'>
-            <span><small>Sun</small> <small>10 Mar 2023</small>	<small>22:10 PM</small></span>
-			<EditIcon />	<DeleteIcon
-					onClick={() => handleDeleteNote()}
+            <span><small>{date}</small> 	<small>{time}</small></span>
+			<EditIcon onClick={ShoweditHandler}/>	<DeleteIcon
+					onClick={deleteNoteHandler}
 					className='delete-icon'
 					size='1.3em'
 				/>
@@ -67,3 +68,5 @@ color:"#333333",
 };
 
 export default Note;
+
+
